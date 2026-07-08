@@ -1,0 +1,32 @@
+# Generator entrypoint. Run from tools/: `just all 26.2`
+# extract needs Java matching the MC version (26.2 -> Java 25), curl, jq, unzip.
+
+default:
+    @just --list
+
+# Download jars, run vanilla --reports, pull tags/enchantments/lang into work/
+extract version:
+    scripts/extract.sh {{ version }} work/
+
+# work/ + previous version's data (carry) + deltas -> data/<version>/
+transform version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "{{ justfile_directory() }}"
+    carry=$(ls ../data | sort -V | awk -v v="{{ version }}" '$0 == v {exit} {prev = $0} END {print prev}')
+    [ -n "$carry" ] || { echo "no previous version in data/ to --carry from"; exit 1; }
+    classify_args=()
+    [ -f work/entity-classify.json ] && classify_args=(--entity-classify work/entity-classify.json)
+    echo ">> carry: data/$carry"
+    crystal run scripts/transform.cr -- \
+      --work work/ \
+      --carry "../data/$carry" \
+      --deltas "deltas/{{ version }}.json" \
+      "${classify_args[@]}" \
+      --out "../data/{{ version }}"
+
+# Parse data/<version>/ through the shard's real models + derivations
+validate version:
+    cd "{{ justfile_directory() }}" && crystal run scripts/validate.cr -- {{ version }}
+
+all version: (extract version) (transform version) (validate version)

@@ -1,0 +1,14 @@
+name: minecraft-data
+version: 0.1.0
+
+description: |
+  Minecraft game data for Crystal: per-version blocks, items, materials,
+  enchantments, collision shapes, entities and translations, plus the
+  generator that produces new versions from a Minecraft jar.
+
+authors:
+  - grepsedawk <grepsedawk@users.noreply.github.com>
+
+crystal: ">= 1.17.0"
+
+license: MIT

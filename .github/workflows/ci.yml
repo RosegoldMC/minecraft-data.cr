@@ -1,0 +1,41 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oprypin/install-crystal@v1
+        with:
+          crystal: 1.19.1
+
+      - name: Format
+        run: crystal tool format --check
+
+      - name: Specs
+        run: crystal spec
+
+      - name: Compile-check generator scripts
+        run: |
+          crystal build --no-codegen tools/scripts/transform.cr
+          crystal build --no-codegen tools/scripts/format.cr
+          crystal build --no-codegen tools/scripts/validate.cr
+
+      - name: Validate all shipped versions
+        run: |
+          for v in 1.21.8 1.21.9 1.21.11 26.1 26.2; do
+            crystal run tools/scripts/validate.cr -- "$v"
+          done
+
+      - name: Data files are in canonical form
+        run: |
+          crystal build tools/scripts/format.cr -o /tmp/format
+          /tmp/format data/*/*.json
+          git diff --exit-code -- data/
