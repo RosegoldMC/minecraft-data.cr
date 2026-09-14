@@ -100,4 +100,29 @@ class Minecraft::Data
     property entity_type : String = ""
     property category : String = ""
   end
+
+  class ParticleRegistry
+    include JSON::Serializable
+
+    getter schema : UInt32 = 1_u32
+    getter particles : Array(ParticleMetadata)
+    @[JSON::Field(key: "position_sources")]
+    getter position_sources : Array(PositionSourceMetadata)
+  end
+
+  class ParticleMetadata
+    include JSON::Serializable
+
+    getter id : UInt32
+    getter name : String
+    getter codec : String
+  end
+
+  class PositionSourceMetadata
+    include JSON::Serializable
+
+    getter id : UInt32
+    getter name : String
+    getter codec : String
+  end
 end
