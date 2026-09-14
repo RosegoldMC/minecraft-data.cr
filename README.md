@@ -1,8 +1,8 @@
 # minecraft-data.cr
 
 Minecraft game data for Crystal: per-version blocks, items, materials, enchantments,
-collision shapes, entities and translations — plus the generator that produces new
-versions from a Minecraft jar. This shard owns the growing data so consumers
+collision shapes, entities, particle registries and translations. It also includes
+the generator that produces new versions from a Minecraft jar. This shard owns the growing data so consumers
 (e.g. [rosegold.cr](https://github.com/RosegoldMC/rosegold.cr)) don't have to.
 
 It replaces a dependency on PrismarineJS's *published*
@@ -50,6 +50,7 @@ One directory per version under `data/<version>/`:
 | `enchantments.json` | `[{id, name}]` | `Minecraft::Data::Enchantment` |
 | `entities.json` | `[{id, name, width, height, type?, category?}]` | `Minecraft::Data::EntityMetadata` |
 | `language.json` | `{translation_key: string}` (en_us) | — |
+| `particles.json` | `{schema:1, particles:[{id,name,codec}], position_sources:[{id,name,codec}]}` | `Minecraft::Data::ParticleRegistry` |
 
 `states[].type` is lowercase `"bool"|"enum"|"int"` (Crystal's enum parse is
 case-insensitive). `material` is a PrismarineJS-synthesized field, not a Mojang field —
@@ -63,7 +64,7 @@ per record.
 
 ## Generating a new version
 
-From `tools/` (needs `just`, `crystal`, `curl`, `jq`, `unzip`, and Java matching the
+From `tools/` (needs `just`, `crystal`, `curl`, `git`, `jq`, `unzip`, and Java matching the
 MC version — 26.2 needs Java 25):
 
 ```
@@ -74,13 +75,13 @@ which chains three stages:
 
 1. `just extract 26.2` — `scripts/extract.sh` downloads server+client jars from
    Mojang's piston meta, runs vanilla `--reports`, and pulls block/item tags,
-   enchantments, and `en_us.json` into `tools/work/`.
+   enchantments, `en_us.json`, and the Mojang-mapped particle registrations into `tools/work/`.
 2. `just transform 26.2` — `scripts/transform.cr` turns `--reports` + jar tags into
    the slim schema. `--carry` (auto-resolved: the previous version in `data/`) supplies
    runtime values not present in `--reports`; `tools/deltas/26.2.json` hand-curates
    blocks/entities new in this version. Writes `data/26.2/`.
 3. `just validate 26.2` — `scripts/validate.cr` parses the output through this shard's
-   actual models and runs `Minecraft::Data`'s derivations. A green run means the data
+   actual models, checks particle registry IDs/codecs, and runs `Minecraft::Data`'s derivations. A green run means the data
    is structurally consumable.
 
 ### What each input gives
@@ -94,6 +95,13 @@ which chains three stages:
 - jar enchantments (`data/minecraft/enchantment/*`): enchantment names; numeric ids are
   assigned in **sorted (alphabetical)** registry order, matching vanilla.
 - client jar `assets/minecraft/lang/en_us.json`: `language.json`.
+- Mojang-mapped `ParticleTypes.java` and `PositionSourceType.java` from
+  [extremeheat/extracted_minecraft_data](https://github.com/extremeheat/extracted_minecraft_data):
+  particle and position-source registration order, numeric IDs, and payload codec kind.
+
+`transform.cr` cross-checks generated particle and position-source IDs/names against
+the corresponding entries in vanilla `reports/registries.json`. It fails if either
+registry is missing or differs, rather than carrying forward a stale mapping.
 
 ### Carry-forward + deltas
 
@@ -138,11 +146,18 @@ Protocol 773 covers 1.21.9 and 1.21.10; PrismarineJS publishes both under `pc/1.
 The published verbose files are schema-compatible with this shard's models (extra
 fields are ignored by `JSON::Serializable`), so `data/1.21.9/` uses them directly:
 
+Run `just extract 1.21.9` from `tools/` first to fetch that version's particle sources.
+Then run these commands from the repository root:
+
 ```
 BASE=https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.21.9
 for f in items blocks materials enchantments blockCollisionShapes entities language; do
   curl -s "$BASE/$f.json" -o data/1.21.9/$f.json
 done
+crystal run tools/scripts/particles.cr -- \
+  data/1.21.9/particles.json \
+  tools/work/decompiled/client/net/minecraft/core/particles/ParticleTypes.java \
+  tools/work/decompiled/client/net/minecraft/world/level/gameevent/PositionSourceType.java
 crystal run tools/scripts/validate.cr -- 1.21.9
 ```
 

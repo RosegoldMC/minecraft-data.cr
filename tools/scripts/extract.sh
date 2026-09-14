@@ -5,7 +5,7 @@
 #   Downloads server.jar + client.jar for <version> from Mojang's piston meta,
 #   runs vanilla --reports, and pulls block tags + enchantments (server jar) and
 #   en_us.json (client jar). Requires Java matching the version (26.2 -> Java 25),
-#   curl, jq, unzip.
+#   curl, git, jq, unzip.
 set -euo pipefail
 
 VERSION="${1:?usage: extract.sh <version> <work_dir>}"
@@ -55,5 +55,9 @@ echo ">> Extracting en_us.json"
 rm -rf lang && mkdir -p lang
 unzip -o -q client.jar 'assets/minecraft/lang/en_us.json' -d _client
 cp _client/assets/minecraft/lang/en_us.json lang/en_us.json
+
+echo ">> Fetching Mojang-mapped particle registrations"
+rm -rf decompiled
+git clone --depth 1 --branch "client${VERSION}" https://github.com/extremeheat/extracted_minecraft_data.git decompiled >/dev/null 2>&1
 
 echo ">> Done. Block tags: $(find jar-data/tags/block -name '*.json' | wc -l), enchantments: $(ls jar-data/enchantment/*.json | wc -l)"

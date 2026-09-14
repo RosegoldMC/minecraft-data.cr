@@ -1,7 +1,14 @@
 require "spec"
 require "../src/minecraft-data"
 
-LATEST = Minecraft::Data.load("26.2")
+LATEST              = Minecraft::Data.load("26.2")
+PARTICLE_REGISTRIES = {
+  "1.21.8"  => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.8/particles.json")),
+  "1.21.9"  => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.9/particles.json")),
+  "1.21.11" => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.11/particles.json")),
+  "26.1"    => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("26.1/particles.json")),
+  "26.2"    => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("26.2/particles.json")),
+}
 
 describe Minecraft::Data do
   it "parses all registries of the latest shipped version" do
@@ -44,5 +51,16 @@ describe Minecraft::Data do
   it "names multi-property states with property=value pairs" do
     slab = LATEST.blocks.find { |b| b.id_str == "oak_slab" }.not_nil!
     LATEST.block_state_names[slab.min_state_id].should eq("oak_slab[type=top, waterlogged=true]")
+  end
+
+  it "ships contiguous particle and position-source registries for every version" do
+    PARTICLE_REGISTRIES.each_value do |registry|
+      registry.schema.should eq(1_u32)
+      registry.particles.map(&.id).should eq((0...registry.particles.size).map(&.to_u32).to_a)
+      registry.particles.find(&.name.==("minecraft:item")).not_nil!.codec.should eq("item_stack")
+      registry.position_sources.map(&.codec).should eq(["block_pos", "entity_id_offset"])
+    end
+
+    PARTICLE_REGISTRIES["26.2"].particles.find(&.name.==("minecraft:geyser_base")).not_nil!.codec.should eq("geyser_base")
   end
 end

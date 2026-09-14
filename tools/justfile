@@ -1,5 +1,5 @@
 # Generator entrypoint. Run from tools/: `just all 26.2`
-# extract needs Java matching the MC version (26.2 -> Java 25), curl, jq, unzip.
+# extract needs Java matching the MC version (26.2 -> Java 25), curl, git, jq, unzip.
 
 default:
     @just --list
@@ -22,6 +22,8 @@ transform version:
       --work work/ \
       --carry "../data/$carry" \
       --deltas "deltas/{{ version }}.json" \
+      --particle-types "work/decompiled/client/net/minecraft/core/particles/ParticleTypes.java" \
+      --position-source-types "work/decompiled/client/net/minecraft/world/level/gameevent/PositionSourceType.java" \
       "${classify_args[@]}" \
       --out "../data/{{ version }}"
 
