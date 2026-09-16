@@ -22,20 +22,20 @@ dependencies:
 require "minecraft-data"
 
 # Embed one version's data at compile time and parse + derive it:
-data = Minecraft::Data.load("26.2")
+data = Minecraft::Data.load("26.3")
 data.blocks                       # Array(Minecraft::Data::Block)
 data.block_state_names[8]         # "grass_block[snowy=false]"
 data.block_state_collision_shapes # per state: Array of {min_x,min_y,min_z,max_x,max_y,max_z}
 data.air_states                   # Set(UInt16)
 
 # Or embed individual files (entities/language aren't part of Data):
-Array(Minecraft::Data::EntityMetadata).from_json(Minecraft::Data.read_asset("26.2/entities.json"))
-Hash(String, String).from_json(Minecraft::Data.read_asset("26.2/language.json"))
+Array(Minecraft::Data::EntityMetadata).from_json(Minecraft::Data.read_asset("26.3/entities.json"))
+Hash(String, String).from_json(Minecraft::Data.read_asset("26.3/language.json"))
 ```
 
 Both macros take string literals (or macro-time string expressions), so only the
 versions you reference are embedded into your binary. Shipped versions:
-`Minecraft::Data::SHIPPED_VERSIONS` = 1.21.8, 1.21.9, 1.21.11, 26.1, 26.2.
+`Minecraft::Data::SHIPPED_VERSIONS` = 1.21.8, 1.21.9, 1.21.11, 26.1, 26.2, 26.3.
 
 ## Data schema
 
@@ -65,22 +65,22 @@ per record.
 ## Generating a new version
 
 From `tools/` (needs `just`, `crystal`, `curl`, `git`, `jq`, `unzip`, and Java matching the
-MC version — 26.2 needs Java 25):
+MC version — 26.3 needs Java 25):
 
 ```
-just all 26.2
+just all 26.3
 ```
 
 which chains three stages:
 
-1. `just extract 26.2` — `scripts/extract.sh` downloads server+client jars from
+1. `just extract 26.3` — `scripts/extract.sh` downloads server+client jars from
    Mojang's piston meta, runs vanilla `--reports`, and pulls block/item tags,
    enchantments, `en_us.json`, and the Mojang-mapped particle registrations into `tools/work/`.
-2. `just transform 26.2` — `scripts/transform.cr` turns `--reports` + jar tags into
+2. `just transform 26.3` — `scripts/transform.cr` turns `--reports` + jar tags into
    the slim schema. `--carry` (auto-resolved: the previous version in `data/`) supplies
-   runtime values not present in `--reports`; `tools/deltas/26.2.json` hand-curates
-   blocks/entities new in this version. Writes `data/26.2/`.
-3. `just validate 26.2` — `scripts/validate.cr` parses the output through this shard's
+   runtime values not present in `--reports`; `tools/deltas/26.3.json` hand-curates
+   blocks/entities new in this version. Writes `data/26.3/`.
+3. `just validate 26.3` — `scripts/validate.cr` parses the output through this shard's
    actual models, checks particle registry IDs/codecs, and runs `Minecraft::Data`'s derivations. A green run means the data
    is structurally consumable.
 
@@ -122,6 +122,8 @@ by name.
 - `collisionArchetype.<name>` — an existing block with identical state structure whose
   collision shape this block reuses (e.g. `cinnabar_slab -> stone_slab`,
   `sulfur_spike -> pointed_dripstone`).
+- `collisionShapes.<name>` — source-derived collision boxes for each state, used when
+  no existing block has the same geometry (for example, 26.3's shelf mushroom).
 - `entities.<name>` — `{width, height, type, category}` for new entities.
 
 ### Fabric route (preferred when upstream mappings exist)

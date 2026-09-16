@@ -1,13 +1,14 @@
 require "spec"
 require "../src/minecraft-data"
 
-LATEST              = Minecraft::Data.load("26.2")
+LATEST              = Minecraft::Data.load("26.3")
 PARTICLE_REGISTRIES = {
   "1.21.8"  => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.8/particles.json")),
   "1.21.9"  => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.9/particles.json")),
   "1.21.11" => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("1.21.11/particles.json")),
   "26.1"    => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("26.1/particles.json")),
   "26.2"    => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("26.2/particles.json")),
+  "26.3"    => Minecraft::Data::ParticleRegistry.from_json(Minecraft::Data.read_asset("26.3/particles.json")),
 }
 
 describe Minecraft::Data do
@@ -51,6 +52,20 @@ describe Minecraft::Data do
   it "names multi-property states with property=value pairs" do
     slab = LATEST.blocks.find { |b| b.id_str == "oak_slab" }.not_nil!
     LATEST.block_state_names[slab.min_state_id].should eq("oak_slab[type=top, waterlogged=true]")
+  end
+
+  it "ships the shelf mushroom's age and facing collision shapes" do
+    mushroom = LATEST.blocks.find { |b| b.id_str == "shelf_mushroom" }.not_nil!
+    mushroom.min_state_id.should eq(11227_u16)
+    mushroom.max_state_id.should eq(11234_u16)
+    LATEST.block_state_collision_shapes[mushroom.min_state_id].should eq([
+      {0.1875_f32, 0.5625_f32, 0.5625_f32, 0.8125_f32, 0.6875_f32, 1.0_f32},
+      {0.3125_f32, 0.5_f32, 0.75_f32, 0.6875_f32, 0.5625_f32, 1.0_f32},
+    ])
+    LATEST.block_state_collision_shapes[mushroom.max_state_id].should eq([
+      {0.0_f32, 0.5_f32, 0.0625_f32, 0.625_f32, 0.6875_f32, 0.9375_f32},
+      {0.0_f32, 0.375_f32, 0.25_f32, 0.375_f32, 0.5_f32, 0.75_f32},
+    ])
   end
 
   it "ships contiguous particle and position-source registries for every version" do

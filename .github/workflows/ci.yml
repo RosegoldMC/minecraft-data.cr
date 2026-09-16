@@ -30,7 +30,7 @@ jobs:
 
       - name: Validate all shipped versions
         run: |
-          for v in 1.21.8 1.21.9 1.21.11 26.1 26.2; do
+          for v in 1.21.8 1.21.9 1.21.11 26.1 26.2 26.3; do
             crystal run tools/scripts/validate.cr -- "$v"
           done
 

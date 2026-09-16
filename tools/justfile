@@ -1,5 +1,5 @@
-# Generator entrypoint. Run from tools/: `just all 26.2`
-# extract needs Java matching the MC version (26.2 -> Java 25), curl, git, jq, unzip.
+# Generator entrypoint. Run from tools/: `just all 26.3`
+# extract needs Java matching the MC version (26.3 -> Java 25), curl, git, jq, unzip.
 
 default:
     @just --list
