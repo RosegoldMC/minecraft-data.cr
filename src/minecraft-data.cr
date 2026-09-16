@@ -8,7 +8,7 @@ class Minecraft::Data
   DATA_ROOT = "#{__DIR__}/../data/"
 
   # Game versions shipped in data/, in release order.
-  SHIPPED_VERSIONS = ["1.21.8", "1.21.9", "1.21.11", "26.1", "26.2"]
+  SHIPPED_VERSIONS = ["1.21.8", "1.21.9", "1.21.11", "26.1", "26.2", "26.3"]
 
   # Compile-time embed of one data file. `path` must be a string literal
   # (or a macro-time string expression), e.g.

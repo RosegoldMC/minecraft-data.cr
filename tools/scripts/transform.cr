@@ -1,11 +1,11 @@
 # Transform Minecraft jar data into the slim per-version data/<version>/ schema.
 #
-# Run via the justfile (`just transform 26.2`) or directly:
+# Run via the justfile (`just transform 26.3`) or directly:
 #   crystal run tools/scripts/transform.cr -- \
-#     --work tools/work/ --carry data/26.1 --deltas tools/deltas/26.2.json \
+#     --work tools/work/ --carry data/26.2 --deltas tools/deltas/26.3.json \
 #     --particle-types tools/work/decompiled/client/net/minecraft/core/particles/ParticleTypes.java \
 #     --position-source-types tools/work/decompiled/client/net/minecraft/world/level/gameevent/PositionSourceType.java \
-#     --entity-classify <verbose entities.json> --out data/26.2
+#     --entity-classify <verbose entities.json> --out data/26.3
 #
 # Inputs (under --work): reports/ (vanilla --reports), jar-data/tags/{block,item}/,
 # jar-data/enchantment/, lang/en_us.json, and decompiled/. --carry is the previous version's slim assets

@@ -4,7 +4,7 @@
 # Usage: extract.sh <version> <work_dir>
 #   Downloads server.jar + client.jar for <version> from Mojang's piston meta,
 #   runs vanilla --reports, and pulls block tags + enchantments (server jar) and
-#   en_us.json (client jar). Requires Java matching the version (26.2 -> Java 25),
+#   en_us.json (client jar). Requires Java matching the version (26.3 -> Java 25),
 #   curl, git, jq, unzip.
 set -euo pipefail
 
