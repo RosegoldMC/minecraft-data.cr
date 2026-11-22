@@ -1,7 +1,7 @@
 # minecraft-data.cr
 
 Minecraft game data for Crystal: per-version blocks, items, materials, enchantments,
-collision shapes, entities, particle registries and translations. It also includes
+collision shapes, block outlines, entities, particle registries and translations. It also includes
 the generator that produces new versions from a Minecraft jar. This shard owns the growing data so consumers
 (e.g. [rosegold.cr](https://github.com/RosegoldMC/rosegold.cr)) don't have to.
 
@@ -28,9 +28,10 @@ data.block_state_names[8]         # "grass_block[snowy=false]"
 data.block_state_collision_shapes # per state: Array of {min_x,min_y,min_z,max_x,max_y,max_z}
 data.air_states                   # Set(UInt16)
 
-# Or embed individual files (entities/language aren't part of Data):
+# Or embed individual files separately:
 Array(Minecraft::Data::EntityMetadata).from_json(Minecraft::Data.read_asset("26.3/entities.json"))
 Hash(String, String).from_json(Minecraft::Data.read_asset("26.3/language.json"))
+Minecraft::Data::BlockOutlines.from_json(Minecraft::Data.read_asset("26.3/blockOutlines.json"))
 ```
 
 Both macros take string literals (or macro-time string expressions), so only the
@@ -46,6 +47,7 @@ One directory per version under `data/<version>/`:
 | `items.json` | `[{id, name, stackSize, maxDurability?, enchantCategories?}]` | `Minecraft::Data::Item` |
 | `blocks.json` | `[{name, minStateId, maxStateId, hardness, material, harvestTools?, states:[{name,type,num_values,values?}]}]` | `Minecraft::Data::Block` |
 | `blockCollisionShapes.json` | `{blocks:{name->id\|[id...]}, shapes:{id->[[6 floats]...]}}` | `Minecraft::Data::BlockCollisionShapes` |
+| `blockOutlines.json` | `{shapes:[[[6 floats]...]], blocks:[[shape_id...]], offsets:[[state_id,max_xz,max_y]], held:[[state_id,item_name,shape_id]]}` | `Minecraft::Data::BlockOutlines` |
 | `materials.json` | `{material:{item_id: speed_float}}` (keys MUST match `material` names in blocks.json) | `Minecraft::Data::Material` |
 | `enchantments.json` | `[{id, name}]` | `Minecraft::Data::Enchantment` |
 | `entities.json` | `[{id, name, width, height, type?, category?}]` | `Minecraft::Data::EntityMetadata` |
@@ -83,6 +85,13 @@ which chains three stages:
 3. `just validate 26.3` — `scripts/validate.cr` parses the output through this shard's
    actual models, checks particle registry IDs/codecs, and runs `Minecraft::Data`'s derivations. A green run means the data
    is structurally consumable.
+
+### Block outlines
+
+Block outlines come from vanilla `getShape` and are generated separately from
+`just all`. Once `blocks.json` and `items.json` are in place, run
+`just outlines /path/to/scratch 26.3` from `tools/`. See
+[tools/block-outlines](tools/block-outlines/README.md) for prerequisites and checks.
 
 ### What each input gives
 

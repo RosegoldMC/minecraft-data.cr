@@ -32,3 +32,11 @@ validate version:
     cd "{{ justfile_directory() }}" && crystal run scripts/validate.cr -- {{ version }}
 
 all version: (extract version) (transform version) (validate version)
+
+# Extract vanilla block outlines for the selected versions (default: all shipped)
+outlines work_dir *versions:
+    python3 -I block-outlines/generate.py --work-dir {{ quote(work_dir) }} {{ versions }}
+
+# Regenerate block outlines for comparison without changing data/
+check-outlines work_dir *versions:
+    python3 -I block-outlines/generate.py --work-dir {{ quote(work_dir) }} --check {{ versions }}
