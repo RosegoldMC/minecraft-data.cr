@@ -88,6 +88,17 @@ class Minecraft::Data
   alias Box = {Float32, Float32, Float32, Float32, Float32, Float32}
   alias Shape = Array(Box)
 
+  # root of blockOutlines.json
+  struct BlockOutlines
+    include JSON::Serializable
+
+    getter shapes : Array(Array(Array(Float64)))
+    # Block registry ID -> one shape ID for the whole block, or one per state in numeric ID order.
+    getter blocks : Array(Array(Int32))
+    getter offsets : Array(Tuple(Int32, Float64, Float64)) = [] of Tuple(Int32, Float64, Float64)
+    getter held : Array(Tuple(Int32, String, Int32)) = [] of Tuple(Int32, String, Int32)
+  end
+
   # entries of entities.json
   class EntityMetadata
     include JSON::Serializable
